@@ -59,7 +59,7 @@ public class NMEAGPRMCMessageTranslator extends NMEAMessageTranslator
   }
 
   @Override
-  protected void validate(String[] data) throws ValidationException
+  public void validate(String[] data) throws ValidationException
   {
     if (data == null || data.length <12 || data.length > 13)
       throw new ValidationException(LOGGER.translate("INVALID_NMEAGPRMC_MSG"));

@@ -41,9 +41,9 @@ public abstract class NMEAMessageTranslator
 	{
 	}
 
-	protected abstract void translate(GeoEvent geoEvent, String[] data) throws FieldException;
+	public abstract void translate(GeoEvent geoEvent, String[] data) throws FieldException;
 
-	protected abstract void validate(String[] data) throws ValidationException;
+	public abstract void validate(String[] data) throws ValidationException;
 
 	protected Date toTime(String time, String date)
 	{

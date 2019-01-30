@@ -56,7 +56,7 @@ public class NMEAGPGGAMessageTranslator extends NMEAMessageTranslator
   }
 
   @Override
-  protected void validate(String[] data) throws ValidationException
+  public void validate(String[] data) throws ValidationException
   {
     if (data == null || data.length != 15)
       throw new ValidationException(LOGGER.translate("INVALID_NMEAGPGG_MSG"));

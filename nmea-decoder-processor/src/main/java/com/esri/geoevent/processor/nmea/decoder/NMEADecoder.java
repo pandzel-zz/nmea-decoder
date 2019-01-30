@@ -29,9 +29,11 @@ import org.apache.commons.logging.LogFactory;
 
 import com.esri.ges.core.component.ComponentException;
 import com.esri.ges.core.geoevent.GeoEvent;
+import com.esri.ges.core.validation.ValidationException;
 import com.esri.ges.processor.GeoEventProcessorBase;
 import com.esri.ges.processor.GeoEventProcessorDefinition;
 import java.util.Map;
+import org.apache.commons.lang3.StringUtils;
 
 public class NMEADecoder extends GeoEventProcessorBase {
 
@@ -60,7 +62,24 @@ public class NMEADecoder extends GeoEventProcessorBase {
   @Override
   public GeoEvent process(GeoEvent ge) throws Exception {
     if (nmeaDataField!=null && ge.getField(nmeaDataField)!=null) {
-      String nmeaData = ge.getField(nmeaDataField).toString();
+      String nmeaData = StringUtils.trimToEmpty(ge.getField(nmeaDataField).toString());
+      String [] elements = nmeaData.split(",");
+      if (elements!=null && elements.length>0) {
+        String type = elements[0].substring(1);
+        NMEAMessageTranslator translator = translators.get(type);
+        if (translator!=null) {
+          try {
+            translator.validate(elements);
+            translator.translate(ge, elements);
+          } catch (ValidationException ex) {
+            LOG.debug(String.format("Invalid NMEA data: %s", nmeaData), ex);
+          }
+        } else {
+          LOG.debug(String.format("Unsupported NMEA type: %s", type));
+        }
+      } else {
+        LOG.debug(String.format("Invalid NMEA data: %s", nmeaData));
+      }
     }
     return ge;
   }
