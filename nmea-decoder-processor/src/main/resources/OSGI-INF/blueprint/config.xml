@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<blueprint xmlns="http://www.osgi.org/xmlns/blueprint/v1.0.0" >
-	<bean id="nmeaDecoderServiceBean" class="com.esri.geoevent.nmea.decoder.NmeaDecoderService" activation="eager">
-	</bean>
+<blueprint xmlns="http://www.osgi.org/xmlns/blueprint/v1.0.0"	default-activation="lazy">
+	
   
-	<service id="nmeaDecoderService" ref="nmeaDecoderServiceBean" interface="com.esri.ges.processor.GeoEventProcessorService">
-	</service>
+	<bean id="nmeaDecoderServiceBean"	class="com.esri.geoevent.processor.nmea.decoder.NMEADecoderService">
+		<property name="bundleContext" ref="blueprintBundleContext" />
+	</bean>
+	
+	<service id="nmeaDecoderService" ref="nmeaDecoderServiceBean"	interface="com.esri.ges.processor.GeoEventProcessorService" />
+
 </blueprint>

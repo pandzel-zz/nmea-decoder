@@ -1,5 +1,5 @@
 /*
-  Copyright 2019 Esri
+  Copyright 1995-2018 Esri
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -20,26 +20,36 @@
   Redlands, California, USA 92373
 
   email: contracts@esri.com
- */
-package com.esri.geoevent.nmea.decoder;
+*/
+package com.esri.geoevent.processor.nmea.decoder;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import com.esri.ges.core.component.ComponentException;
 import com.esri.ges.core.geoevent.GeoEvent;
 import com.esri.ges.processor.GeoEventProcessorBase;
 import com.esri.ges.processor.GeoEventProcessorDefinition;
 
-/**
- * NMEA decoder.
- */
-public class NmeaDecoder  extends GeoEventProcessorBase {
+public class NMEADecoder extends GeoEventProcessorBase {
 
-  public NmeaDecoder(GeoEventProcessorDefinition definition) throws ComponentException {
+  private static final Log LOG = LogFactory.getLog(NMEADecoder.class);
+
+  public NMEADecoder(GeoEventProcessorDefinition definition) throws ComponentException {
     super(definition);
   }
 
   @Override
-  public GeoEvent process(GeoEvent event) throws Exception {
-    return event;
+  public boolean isGeoEventMutator() {
+    return true;
+  }
+
+  @Override
+  public void afterPropertiesSet() {
   }
   
+  @Override
+  public GeoEvent process(GeoEvent ge) throws Exception {
+    return ge;
+  }
 }
