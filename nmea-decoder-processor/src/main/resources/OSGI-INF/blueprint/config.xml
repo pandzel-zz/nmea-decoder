@@ -3,6 +3,19 @@
 	
   
 	<bean id="nmeaDecoderServiceBean"	class="com.esri.geoevent.processor.nmea.decoder.NMEADecoderService">
+    <argument>
+      <map key-type="java.lang.String" value-type="com.esri.geoevent.processor.nmea.decoder.translator.NMEAMessageTranslator" >
+        <entry key="GPGGA">
+          <bean class="com.esri.geoevent.processor.nmea.decoder.translator.NMEAGPGGAMessageTranslator"/>
+        </entry>
+        <entry key="GPGLL">
+          <bean class="com.esri.geoevent.processor.nmea.decoder.translator.NMEAGPGLLMessageTranslator"/>
+        </entry>
+        <entry key="GPRMC">
+          <bean class="com.esri.geoevent.processor.nmea.decoder.translator.NMEAGPRMCMessageTranslator"/>
+        </entry>
+      </map>
+    </argument>
 		<property name="bundleContext" ref="blueprintBundleContext" />
 	</bean>
 	

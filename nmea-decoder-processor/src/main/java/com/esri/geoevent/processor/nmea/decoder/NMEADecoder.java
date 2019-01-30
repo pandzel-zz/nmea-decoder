@@ -23,6 +23,7 @@
 */
 package com.esri.geoevent.processor.nmea.decoder;
 
+import com.esri.geoevent.processor.nmea.decoder.translator.NMEAMessageTranslator;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -30,15 +31,18 @@ import com.esri.ges.core.component.ComponentException;
 import com.esri.ges.core.geoevent.GeoEvent;
 import com.esri.ges.processor.GeoEventProcessorBase;
 import com.esri.ges.processor.GeoEventProcessorDefinition;
+import java.util.Map;
 
 public class NMEADecoder extends GeoEventProcessorBase {
 
   private static final Log LOG = LogFactory.getLog(NMEADecoder.class);
   
+  private final Map<String,NMEAMessageTranslator> translators;
   private String nmeaDataField;
 
-  public NMEADecoder(GeoEventProcessorDefinition definition) throws ComponentException {
+  public NMEADecoder(GeoEventProcessorDefinition definition, Map<String,NMEAMessageTranslator> translators) throws ComponentException {
     super(definition);
+    this.translators = translators;
   }
 
   @Override
@@ -57,7 +61,6 @@ public class NMEADecoder extends GeoEventProcessorBase {
   public GeoEvent process(GeoEvent ge) throws Exception {
     if (nmeaDataField!=null && ge.getField(nmeaDataField)!=null) {
       String nmeaData = ge.getField(nmeaDataField).toString();
-      ge.setField("nmea", nmeaData);
     }
     return ge;
   }
