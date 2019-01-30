@@ -1,5 +1,5 @@
 /*
-  Copyright 1995-2018 Esri
+  Copyright 2019 Esri
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -23,7 +23,6 @@
  */
 package com.esri.geoevent.processor.nmea.decoder;
 
-import com.esri.geoevent.processor.nmea.decoder.NMEADecoder;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -37,8 +36,7 @@ public class NMEADecoderService extends GeoEventProcessorServiceBase {
 
   public GeoEventDefinitionManager manager;
 
-  private static final Log LOG = LogFactory
-          .getLog(NMEADecoderService.class);
+  private static final Log LOG = LogFactory.getLog(NMEADecoderService.class);
 
   public NMEADecoderService() throws PropertyException {
     definition = new NMEADecoderDefinition();

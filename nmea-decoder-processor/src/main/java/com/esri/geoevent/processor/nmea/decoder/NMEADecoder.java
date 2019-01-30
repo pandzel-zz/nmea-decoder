@@ -1,5 +1,5 @@
 /*
-  Copyright 1995-2018 Esri
+  Copyright 2019 Esri
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -34,6 +34,8 @@ import com.esri.ges.processor.GeoEventProcessorDefinition;
 public class NMEADecoder extends GeoEventProcessorBase {
 
   private static final Log LOG = LogFactory.getLog(NMEADecoder.class);
+  
+  private String nmeaDataField;
 
   public NMEADecoder(GeoEventProcessorDefinition definition) throws ComponentException {
     super(definition);
@@ -46,10 +48,17 @@ public class NMEADecoder extends GeoEventProcessorBase {
 
   @Override
   public void afterPropertiesSet() {
+    if (hasProperty("nmeaDataField")) {
+      nmeaDataField = getProperty("nmeaDataField").getValueAsString();
+    }
   }
   
   @Override
   public GeoEvent process(GeoEvent ge) throws Exception {
+    if (nmeaDataField!=null && ge.getField(nmeaDataField)!=null) {
+      String nmeaData = ge.getField(nmeaDataField).toString();
+      ge.setField("nmea", nmeaData);
+    }
     return ge;
   }
 }

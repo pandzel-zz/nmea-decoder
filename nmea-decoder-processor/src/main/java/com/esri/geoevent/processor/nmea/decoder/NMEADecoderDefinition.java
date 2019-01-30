@@ -1,5 +1,5 @@
 /*
-  Copyright 1995-2018 Esri
+  Copyright 2019 Esri
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -25,22 +25,30 @@ package com.esri.geoevent.processor.nmea.decoder;
 
 
 
+import com.esri.ges.core.property.PropertyDefinition;
 import com.esri.ges.core.property.PropertyException;
+import com.esri.ges.core.property.PropertyType;
 import com.esri.ges.processor.GeoEventProcessorDefinitionBase;
 
 public class NMEADecoderDefinition extends GeoEventProcessorDefinitionBase {
 
 	public NMEADecoderDefinition() throws PropertyException {
+    PropertyDefinition nmeaDataField = new PropertyDefinition(
+            "nmeaDataField", PropertyType.String, "", 
+            "${com.esri.geoevent.processor.nmea-decoder-processor.DATA_FIELD_LBL}", 
+            "${com.esri.geoevent.processor.nmea-decoder-processor.DATA_FIELD_DESC}", 
+            Boolean.TRUE, Boolean.FALSE);
+    propertyDefinitions.put(nmeaDataField.getPropertyName(), nmeaDataField);
 	}
 
 	@Override
 	public String getName() {
-		return "VesselshapeGeneratorProcessor";
+		return "NMEADecoder";
 	}
 
 	@Override
 	public String getDomain() {
-		return "com.esri.geoevent.processor.geometry";
+		return "com.esri.geoevent.processor.nmea";
 	}
 
 	@Override
@@ -50,12 +58,12 @@ public class NMEADecoderDefinition extends GeoEventProcessorDefinitionBase {
 
 	@Override
 	public String getLabel() {
-		return "${com.esri.geoevent.processor.nmea-decoder-processor.PROC_LBL}";
+		return "${com.esri.geoevent.processor.nmea-decoder-processor.MAIN_LBL}";
 	}
 
 	@Override
 	public String getDescription() {
-		return "${com.esri.geoevent.processor.nmea-decoder-processor.PROC_DESC}";
+		return "${com.esri.geoevent.processor.nmea-decoder-processor.MAIN_DESC}";
 	}
 
 	@Override
