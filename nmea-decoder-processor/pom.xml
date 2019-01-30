@@ -25,7 +25,7 @@
   <version>10.6.1</version>
   <packaging>bundle</packaging>
 
-  <name>NMEA Decoder processor</name>
+  <name>Esri :: GeoEvent :: NMEA Decoder Processor</name>
   <description>NMEA decoder processor OSGi blueprint bundle project.</description>
   <properties>
     <contact.address>geoevent@esri.com</contact.address>
