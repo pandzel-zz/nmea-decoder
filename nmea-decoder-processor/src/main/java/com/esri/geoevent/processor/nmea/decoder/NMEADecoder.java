@@ -20,7 +20,7 @@
   Redlands, California, USA 92373
 
   email: contracts@esri.com
-*/
+ */
 package com.esri.geoevent.processor.nmea.decoder;
 
 import com.esri.geoevent.processor.nmea.decoder.translator.NMEAMessageTranslator;
@@ -29,6 +29,7 @@ import org.apache.commons.logging.LogFactory;
 
 import com.esri.ges.core.component.ComponentException;
 import com.esri.ges.core.geoevent.GeoEvent;
+import com.esri.ges.core.geoevent.GeoEventDefinition;
 import com.esri.ges.core.validation.ValidationException;
 import com.esri.ges.messaging.GeoEventCreator;
 import com.esri.ges.processor.GeoEventProcessorBase;
@@ -39,12 +40,12 @@ import org.apache.commons.lang3.StringUtils;
 public class NMEADecoder extends GeoEventProcessorBase {
 
   private static final Log LOG = LogFactory.getLog(NMEADecoder.class);
-  
-  private final GeoEventCreator	geoEventCreator;
-  private final Map<String,NMEAMessageTranslator> translators;
+
+  private final GeoEventCreator geoEventCreator;
+  private final Map<String, NMEAMessageTranslator> translators;
   private String nmeaDataField;
 
-  public NMEADecoder(GeoEventProcessorDefinition definition, GeoEventCreator geoEventCreator, Map<String,NMEAMessageTranslator> translators) throws ComponentException {
+  public NMEADecoder(GeoEventProcessorDefinition definition, GeoEventCreator geoEventCreator, Map<String, NMEAMessageTranslator> translators) throws ComponentException {
     super(definition);
     this.geoEventCreator = geoEventCreator;
     this.translators = translators;
@@ -61,29 +62,42 @@ public class NMEADecoder extends GeoEventProcessorBase {
       nmeaDataField = getProperty("nmeaDataField").getValueAsString();
     }
   }
-  
+
   @Override
   public GeoEvent process(GeoEvent ge) throws Exception {
-    if (nmeaDataField!=null && ge.getField(nmeaDataField)!=null) {
-      String nmeaData = StringUtils.trimToEmpty(ge.getField(nmeaDataField).toString());
-      String [] elements = nmeaData.split(",");
-      if (elements!=null && elements.length>0) {
-        String type = elements[0].substring(1);
-        NMEAMessageTranslator translator = translators.get(type);
-        if (translator!=null) {
-          try {
-            translator.validate(elements);
-            translator.translate(ge, elements);
-          } catch (ValidationException ex) {
-            LOG.debug(String.format("Invalid NMEA data: %s", nmeaData), ex);
-          }
-        } else {
-          LOG.debug(String.format("Unsupported NMEA type: %s", type));
-        }
-      } else {
-        LOG.debug(String.format("Invalid NMEA data: %s", nmeaData));
-      }
+
+    if (nmeaDataField == null || ge.getField(nmeaDataField) == null) {
+      LOG.debug(String.format("Unable to process event"));
+      return null;
     }
-    return ge;
+
+    String nmeaData = StringUtils.trimToEmpty(ge.getField(nmeaDataField).toString());
+    String[] elements = nmeaData.split(",");
+
+    if (elements == null || elements.length == 0) {
+      LOG.debug(String.format("Invalid NMEA data: %s", nmeaData));
+      return null;
+    }
+
+    String type = elements[0].substring(1);
+    NMEAMessageTranslator translator = translators.get(type);
+    GeoEventDefinition eventDefinition = ((NMEADecoderDefinition) definition).getGeoEventDefinition(type);
+
+    if (translator == null || eventDefinition == null) {
+      LOG.debug(String.format("Unsupported NMEA type: %s", type));
+      return null;
+    }
+
+    try {
+      translator.validate(elements);
+    } catch (ValidationException ex) {
+      LOG.debug(String.format("Invalid NMEA data: %s", nmeaData), ex);
+      return null;
+    }
+
+    GeoEvent outEvent = geoEventCreator.create(eventDefinition.getGuid());
+    translator.translate(outEvent, elements);
+
+    return outEvent;
   }
 }
