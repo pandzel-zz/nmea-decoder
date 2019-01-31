@@ -30,6 +30,7 @@ import org.apache.commons.logging.LogFactory;
 import com.esri.ges.core.component.ComponentException;
 import com.esri.ges.core.geoevent.GeoEvent;
 import com.esri.ges.core.validation.ValidationException;
+import com.esri.ges.messaging.GeoEventCreator;
 import com.esri.ges.processor.GeoEventProcessorBase;
 import com.esri.ges.processor.GeoEventProcessorDefinition;
 import java.util.Map;
@@ -39,11 +40,13 @@ public class NMEADecoder extends GeoEventProcessorBase {
 
   private static final Log LOG = LogFactory.getLog(NMEADecoder.class);
   
+  private final GeoEventCreator	geoEventCreator;
   private final Map<String,NMEAMessageTranslator> translators;
   private String nmeaDataField;
 
-  public NMEADecoder(GeoEventProcessorDefinition definition, Map<String,NMEAMessageTranslator> translators) throws ComponentException {
+  public NMEADecoder(GeoEventProcessorDefinition definition, GeoEventCreator geoEventCreator, Map<String,NMEAMessageTranslator> translators) throws ComponentException {
     super(definition);
+    this.geoEventCreator = geoEventCreator;
     this.translators = translators;
   }
 

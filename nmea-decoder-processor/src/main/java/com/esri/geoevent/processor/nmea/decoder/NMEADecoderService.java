@@ -24,30 +24,27 @@
 package com.esri.geoevent.processor.nmea.decoder;
 
 import com.esri.geoevent.processor.nmea.decoder.translator.NMEAMessageTranslator;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 import com.esri.ges.core.component.ComponentException;
 import com.esri.ges.core.property.PropertyException;
-import com.esri.ges.manager.geoeventdefinition.GeoEventDefinitionManager;
+import com.esri.ges.messaging.GeoEventCreator;
+import com.esri.ges.messaging.Messaging;
 import com.esri.ges.processor.GeoEventProcessor;
 import com.esri.ges.processor.GeoEventProcessorServiceBase;
 import java.util.Map;
 
 public class NMEADecoderService extends GeoEventProcessorServiceBase {
-
-  public GeoEventDefinitionManager manager;
-
-  private static final Log LOG = LogFactory.getLog(NMEADecoderService.class);
+	private final GeoEventCreator	geoEventCreator;
   private final Map<String,NMEAMessageTranslator> translators;
 
-  public NMEADecoderService(Map<String,NMEAMessageTranslator> translators) throws PropertyException {
+  public NMEADecoderService(Messaging messaging, Map<String,NMEAMessageTranslator> translators) throws PropertyException {
     this.definition = new NMEADecoderDefinition();
     this.translators = translators;
+    this.geoEventCreator = messaging.createGeoEventCreator();
   }
 
   @Override
   public GeoEventProcessor create() throws ComponentException {
-    return new NMEADecoder(definition, translators);
+    return new NMEADecoder(definition, geoEventCreator, translators);
   }
 }

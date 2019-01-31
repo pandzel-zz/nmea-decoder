@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <blueprint xmlns="http://www.osgi.org/xmlns/blueprint/v1.0.0"	default-activation="lazy">
 	
+	<reference id="messagingService" interface="com.esri.ges.messaging.Messaging" />
   
 	<bean id="nmeaDecoderServiceBean"	class="com.esri.geoevent.processor.nmea.decoder.NMEADecoderService">
+    <argument ref="messagingService" />
     <argument>
       <map key-type="java.lang.String" value-type="com.esri.geoevent.processor.nmea.decoder.translator.NMEAMessageTranslator" >
         <entry key="GPGGA">
@@ -16,6 +18,7 @@
         </entry>
       </map>
     </argument>
+    
 		<property name="bundleContext" ref="blueprintBundleContext" />
 	</bean>
 	
