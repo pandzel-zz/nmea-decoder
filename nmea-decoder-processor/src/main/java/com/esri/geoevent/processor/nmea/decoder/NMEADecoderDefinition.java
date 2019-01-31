@@ -25,10 +25,19 @@ package com.esri.geoevent.processor.nmea.decoder;
 
 
 
+import com.esri.ges.core.AccessType;
+import com.esri.ges.core.ConfigurationException;
+import com.esri.ges.core.geoevent.DefaultFieldDefinition;
+import com.esri.ges.core.geoevent.DefaultGeoEventDefinition;
+import com.esri.ges.core.geoevent.FieldDefinition;
+import com.esri.ges.core.geoevent.FieldType;
+import com.esri.ges.core.geoevent.GeoEventDefinition;
 import com.esri.ges.core.property.PropertyDefinition;
 import com.esri.ges.core.property.PropertyException;
 import com.esri.ges.core.property.PropertyType;
 import com.esri.ges.processor.GeoEventProcessorDefinitionBase;
+import java.util.ArrayList;
+import java.util.List;
 
 public class NMEADecoderDefinition extends GeoEventProcessorDefinitionBase {
 
@@ -39,7 +48,32 @@ public class NMEADecoderDefinition extends GeoEventProcessorDefinitionBase {
             "${com.esri.geoevent.processor.nmea-decoder-processor.DATA_FIELD_DESC}", 
             Boolean.TRUE, Boolean.FALSE);
     propertyDefinitions.put(nmeaDataField.getPropertyName(), nmeaDataField);
-	}
+    
+    try {
+      GeoEventDefinition def = new DefaultGeoEventDefinition();
+      def.setName("NMEAGPRMC");
+      def.setAccessType(AccessType.editable);
+
+      List<FieldDefinition> topLevelFields = new ArrayList<FieldDefinition>();
+      
+      topLevelFields.add(new DefaultFieldDefinition("DeviceId", FieldType.Long, "TRACK_ID"));
+      topLevelFields.add(new DefaultFieldDefinition("TimeStamp", FieldType.Date, "TIME_START"));
+      topLevelFields.add(new DefaultFieldDefinition("Shape", FieldType.Geometry, "GEOMETRY"));
+      
+      topLevelFields.add(new DefaultFieldDefinition("Validity", FieldType.String));
+      topLevelFields.add(new DefaultFieldDefinition("Speed", FieldType.Double));
+      topLevelFields.add(new DefaultFieldDefinition("Course", FieldType.Double));
+      topLevelFields.add(new DefaultFieldDefinition("Variation", FieldType.Double));
+      topLevelFields.add(new DefaultFieldDefinition("EastWest", FieldType.String));
+      topLevelFields.add(new DefaultFieldDefinition("Mode", FieldType.String));
+      
+      def.setFieldDefinitions(topLevelFields);
+
+      geoEventDefinitions.put(def.getName(), def);
+    } catch (ConfigurationException ex) {
+      throw new PropertyException(String.format("Error creating geoevent definition. %s", ex.getMessage()));
+    }
+  }
 
 	@Override
 	public String getName() {
