@@ -2,9 +2,11 @@
 <blueprint xmlns="http://www.osgi.org/xmlns/blueprint/v1.0.0"	default-activation="lazy">
 	
 	<reference id="messagingService" interface="com.esri.ges.messaging.Messaging" />
+	<reference id="geoEventDefinitionManagerService" interface="com.esri.ges.manager.geoeventdefinition.GeoEventDefinitionManager" timeout="1000"/>
   
 	<bean id="nmeaDecoderServiceBean"	class="com.esri.geoevent.processor.nmea.decoder.NMEADecoderService">
     <argument ref="messagingService" />
+    <argument ref="geoEventDefinitionManagerService" />
     <argument>
       <map key-type="java.lang.String" value-type="com.esri.geoevent.processor.nmea.decoder.translator.NMEAMessageTranslator" >
         <entry key="GPGGA">

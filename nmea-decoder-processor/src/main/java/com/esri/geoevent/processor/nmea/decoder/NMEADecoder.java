@@ -31,6 +31,7 @@ import com.esri.ges.core.component.ComponentException;
 import com.esri.ges.core.geoevent.GeoEvent;
 import com.esri.ges.core.geoevent.GeoEventDefinition;
 import com.esri.ges.core.validation.ValidationException;
+import com.esri.ges.manager.geoeventdefinition.GeoEventDefinitionManager;
 import com.esri.ges.messaging.GeoEventCreator;
 import com.esri.ges.processor.GeoEventProcessorBase;
 import com.esri.ges.processor.GeoEventProcessorDefinition;
@@ -42,12 +43,14 @@ public class NMEADecoder extends GeoEventProcessorBase {
   private static final Log LOG = LogFactory.getLog(NMEADecoder.class);
 
   private final GeoEventCreator geoEventCreator;
+  private final GeoEventDefinitionManager geoDefinitionManager;
   private final Map<String, NMEAMessageTranslator> translators;
   private String nmeaDataField;
 
-  public NMEADecoder(GeoEventProcessorDefinition definition, GeoEventCreator geoEventCreator, Map<String, NMEAMessageTranslator> translators) throws ComponentException {
+  public NMEADecoder(GeoEventProcessorDefinition definition, GeoEventCreator geoEventCreator, GeoEventDefinitionManager geoDefinitionManager, Map<String, NMEAMessageTranslator> translators) throws ComponentException {
     super(definition);
     this.geoEventCreator = geoEventCreator;
+    this.geoDefinitionManager = geoDefinitionManager;
     this.translators = translators;
   }
 
@@ -95,8 +98,12 @@ public class NMEADecoder extends GeoEventProcessorBase {
       return null;
     }
 
+    eventDefinition = eventDefinition.augment(ge.getGeoEventDefinition().getFieldDefinitions());
+    ((NMEADecoderDefinition)definition).getGeoEventDefinitions().put(eventDefinition.getName(), eventDefinition);
+    
     GeoEvent outEvent = geoEventCreator.create(eventDefinition.getGuid());
     translator.translate(outEvent, elements);
+    outEvent.setAllFields(ge.getAllFields());
 
     return outEvent;
   }

@@ -27,6 +27,7 @@ import com.esri.geoevent.processor.nmea.decoder.translator.NMEAMessageTranslator
 
 import com.esri.ges.core.component.ComponentException;
 import com.esri.ges.core.property.PropertyException;
+import com.esri.ges.manager.geoeventdefinition.GeoEventDefinitionManager;
 import com.esri.ges.messaging.GeoEventCreator;
 import com.esri.ges.messaging.Messaging;
 import com.esri.ges.processor.GeoEventProcessor;
@@ -35,16 +36,18 @@ import java.util.Map;
 
 public class NMEADecoderService extends GeoEventProcessorServiceBase {
 	private final GeoEventCreator	geoEventCreator;
+  private final GeoEventDefinitionManager geoDefinitionManager;
   private final Map<String,NMEAMessageTranslator> translators;
 
-  public NMEADecoderService(Messaging messaging, Map<String,NMEAMessageTranslator> translators) throws PropertyException {
+  public NMEADecoderService(Messaging messaging, GeoEventDefinitionManager geoDefinitionManager, Map<String,NMEAMessageTranslator> translators) throws PropertyException {
     this.definition = new NMEADecoderDefinition();
-    this.translators = translators;
     this.geoEventCreator = messaging.createGeoEventCreator();
+    this.geoDefinitionManager = geoDefinitionManager;
+    this.translators = translators;
   }
 
   @Override
   public GeoEventProcessor create() throws ComponentException {
-    return new NMEADecoder(definition, geoEventCreator, translators);
+    return new NMEADecoder(definition, geoEventCreator, geoDefinitionManager, translators);
   }
 }
