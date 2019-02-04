@@ -81,7 +81,7 @@ public class NMEADecoder extends GeoEventProcessorBase {
 
     // get content of the NMEA data field from the event
     String nmeaData = StringUtils.trimToEmpty(inEvent.getField(nmeaDataField).toString());
-    String[] elements = nmeaData.split(",");
+    String[] elements = nmeaData!=null? nmeaData.split(","): null;
 
     if (elements == null || elements.length == 0) {
       LOG.debug(String.format("Invalid NMEA data: %s", nmeaData));
@@ -89,10 +89,11 @@ public class NMEADecoder extends GeoEventProcessorBase {
     }
 
     // get matching translator
-    String type = elements[0].substring(1);
+    String type = elements[0].replaceAll("^\\$", "");
+    GeoEventDefinition nmeaEventDefinition = ((NMEADecoderDefinition) definition).getGeoEventDefinition(type);
     NMEAMessageTranslator nmeaTranslator = translators.get(type);
 
-    if (nmeaTranslator == null || ((NMEADecoderDefinition) definition).getGeoEventDefinition(type)==null) {
+    if (nmeaTranslator == null || nmeaEventDefinition==null) {
       LOG.debug(String.format("Unsupported NMEA type: %s", type));
       return null;
     }
@@ -105,7 +106,6 @@ public class NMEADecoder extends GeoEventProcessorBase {
     }
     
     // find or produce output geo-event definition
-    GeoEventDefinition nmeaEventDefinition = ((NMEADecoderDefinition) definition).getGeoEventDefinition(type);
     GeoEventDefinition inEventDef = inEvent.getGeoEventDefinition();
     String outEventKey = String.format("%s/%s", inEventDef.getGuid(), nmeaEventDefinition.getGuid());
     GeoEventDefinition outEventDef = edMapper.containsKey(outEventKey)? edMapper.get(outEventKey): null;
