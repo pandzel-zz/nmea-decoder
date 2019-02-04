@@ -28,14 +28,17 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.esri.ges.core.component.ComponentException;
+import com.esri.ges.core.geoevent.FieldDefinition;
 import com.esri.ges.core.geoevent.GeoEvent;
 import com.esri.ges.core.geoevent.GeoEventDefinition;
 import com.esri.ges.core.validation.ValidationException;
 import com.esri.ges.manager.geoeventdefinition.GeoEventDefinitionManager;
+import com.esri.ges.manager.geoeventdefinition.GeoEventDefinitionManagerException;
 import com.esri.ges.messaging.GeoEventCreator;
 import com.esri.ges.processor.GeoEventProcessorBase;
 import com.esri.ges.processor.GeoEventProcessorDefinition;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import org.apache.commons.lang3.StringUtils;
 
 public class NMEADecoder extends GeoEventProcessorBase {
@@ -46,6 +49,7 @@ public class NMEADecoder extends GeoEventProcessorBase {
   private final GeoEventDefinitionManager geoDefinitionManager;
   private final Map<String, NMEAMessageTranslator> translators;
   private String nmeaDataField;
+  private Map<String, GeoEventDefinition> edMapper = new ConcurrentHashMap<>();
 
   public NMEADecoder(GeoEventProcessorDefinition definition, GeoEventCreator geoEventCreator, GeoEventDefinitionManager geoDefinitionManager, Map<String, NMEAMessageTranslator> translators) throws ComponentException {
     super(definition);
@@ -67,14 +71,16 @@ public class NMEADecoder extends GeoEventProcessorBase {
   }
 
   @Override
-  public GeoEvent process(GeoEvent ge) throws Exception {
+  public GeoEvent process(GeoEvent inEvent) throws Exception {
 
-    if (nmeaDataField == null || ge.getField(nmeaDataField) == null) {
+    // check if mandatory NMEA data field name is defined
+    if (nmeaDataField == null || inEvent.getField(nmeaDataField) == null) {
       LOG.debug(String.format("Unable to process event"));
       return null;
     }
 
-    String nmeaData = StringUtils.trimToEmpty(ge.getField(nmeaDataField).toString());
+    // get content of the NMEA data field from the event
+    String nmeaData = StringUtils.trimToEmpty(inEvent.getField(nmeaDataField).toString());
     String[] elements = nmeaData.split(",");
 
     if (elements == null || elements.length == 0) {
@@ -82,29 +88,61 @@ public class NMEADecoder extends GeoEventProcessorBase {
       return null;
     }
 
+    // get matching translator
     String type = elements[0].substring(1);
-    NMEAMessageTranslator translator = translators.get(type);
-    GeoEventDefinition eventDefinition = ((NMEADecoderDefinition) definition).getGeoEventDefinition(type);
+    NMEAMessageTranslator nmeaTranslator = translators.get(type);
 
-    if (translator == null || eventDefinition == null) {
+    if (nmeaTranslator == null || ((NMEADecoderDefinition) definition).getGeoEventDefinition(type)==null) {
       LOG.debug(String.format("Unsupported NMEA type: %s", type));
       return null;
     }
 
     try {
-      translator.validate(elements);
+      nmeaTranslator.validate(elements);
     } catch (ValidationException ex) {
       LOG.debug(String.format("Invalid NMEA data: %s", nmeaData), ex);
       return null;
     }
-
-    eventDefinition = eventDefinition.augment(ge.getGeoEventDefinition().getFieldDefinitions());
-    ((NMEADecoderDefinition)definition).getGeoEventDefinitions().put(eventDefinition.getName(), eventDefinition);
     
-    GeoEvent outEvent = geoEventCreator.create(eventDefinition.getGuid());
-    translator.translate(outEvent, elements);
-    outEvent.setAllFields(ge.getAllFields());
+    // find or produce output geo-event definition
+    GeoEventDefinition nmeaEventDefinition = ((NMEADecoderDefinition) definition).getGeoEventDefinition(type);
+    GeoEventDefinition inEventDef = inEvent.getGeoEventDefinition();
+    String outEventKey = String.format("%s/%s", inEventDef.getGuid(), nmeaEventDefinition.getGuid());
+    GeoEventDefinition outEventDef = edMapper.containsKey(outEventKey)? edMapper.get(outEventKey): null;
+    if (outEventDef==null) {
+      outEventDef = nmeaEventDefinition.augment(inEventDef.getFieldDefinitions());
+      registerDefinition(outEventKey, outEventDef);
+    }
+    
+    // create new geo-event
+    GeoEvent outEvent = geoEventCreator.create(outEventDef.getGuid());
+    nmeaTranslator.translate(outEvent, elements);
+    for (FieldDefinition fd: inEvent.getGeoEventDefinition().getFieldDefinitions()) {
+      outEvent.setField(fd.getName(), inEvent.getField(fd.getName()));
+    }
 
     return outEvent;
+  }
+
+  @Override
+  public void shutdown() {
+    super.shutdown();
+    unregisterAllDefinitions();
+  }
+  
+  private void registerDefinition(String outEventKey, GeoEventDefinition outEventDef) throws GeoEventDefinitionManagerException {
+    geoDefinitionManager.addTemporaryGeoEventDefinition(outEventDef, true);
+    edMapper.put(outEventKey, outEventDef);
+  }
+  
+  private void unregisterAllDefinitions() {
+    edMapper.values().stream().forEach(eventDef->{
+      try {
+        geoDefinitionManager.deleteGeoEventDefinition(eventDef.getGuid());
+      } catch (GeoEventDefinitionManagerException ex) {
+        LOG.warn(String.format("Failed deleting geo-event definition: %s", eventDef.getGuid()), ex);
+      }
+    });
+    edMapper.clear();
   }
 }
