@@ -31,8 +31,10 @@ import java.util.TimeZone;
 import com.esri.core.geometry.MapGeometry;
 import com.esri.core.geometry.Point;
 import com.esri.core.geometry.SpatialReference;
+import com.esri.ges.core.ConfigurationException;
 import com.esri.ges.core.geoevent.FieldException;
 import com.esri.ges.core.geoevent.GeoEvent;
+import com.esri.ges.core.geoevent.GeoEventDefinition;
 import com.esri.ges.core.validation.ValidationException;
 
 public abstract class NMEAMessageTranslator
@@ -44,6 +46,8 @@ public abstract class NMEAMessageTranslator
 	public abstract void translate(GeoEvent geoEvent, String[] data) throws FieldException;
 
 	public abstract void validate(String[] data) throws ValidationException;
+  
+  public abstract GeoEventDefinition getGeoEventDefinition() throws ConfigurationException;
 
 	protected Date toTime(String time, String date)
 	{

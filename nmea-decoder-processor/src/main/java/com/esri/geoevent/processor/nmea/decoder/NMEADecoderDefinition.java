@@ -25,23 +25,19 @@ package com.esri.geoevent.processor.nmea.decoder;
 
 
 
-import com.esri.ges.core.AccessType;
+import com.esri.geoevent.processor.nmea.decoder.translator.NMEAMessageTranslator;
 import com.esri.ges.core.ConfigurationException;
-import com.esri.ges.core.geoevent.DefaultFieldDefinition;
-import com.esri.ges.core.geoevent.DefaultGeoEventDefinition;
-import com.esri.ges.core.geoevent.FieldDefinition;
-import com.esri.ges.core.geoevent.FieldType;
 import com.esri.ges.core.geoevent.GeoEventDefinition;
 import com.esri.ges.core.property.PropertyDefinition;
 import com.esri.ges.core.property.PropertyException;
 import com.esri.ges.core.property.PropertyType;
 import com.esri.ges.processor.GeoEventProcessorDefinitionBase;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Map;
 
 public class NMEADecoderDefinition extends GeoEventProcessorDefinitionBase {
 
-	public NMEADecoderDefinition() throws PropertyException {
+	public NMEADecoderDefinition(Map<String,NMEAMessageTranslator> translators) throws PropertyException {
+    
     PropertyDefinition nmeaDataField = new PropertyDefinition(
             "nmeaDataField", PropertyType.String, "", 
             "${com.esri.geoevent.processor.nmea-decoder-processor.DATA_FIELD_LBL}", 
@@ -49,70 +45,12 @@ public class NMEADecoderDefinition extends GeoEventProcessorDefinitionBase {
             Boolean.TRUE, Boolean.FALSE);
     propertyDefinitions.put(nmeaDataField.getPropertyName(), nmeaDataField);
     
+    
     try {
-      // GPGGA
-      GeoEventDefinition GPGGA = new DefaultGeoEventDefinition();
-      GPGGA.setName("GPGGA");
-      GPGGA.setAccessType(AccessType.editable);
-
-      List<FieldDefinition> GPGGAFields = new ArrayList<FieldDefinition>();
-
-      GPGGAFields.add(new DefaultFieldDefinition("DeviceId", FieldType.Long, "TRACK_ID"));
-      GPGGAFields.add(new DefaultFieldDefinition("TimeStamp", FieldType.Date, "TIME_START"));
-      GPGGAFields.add(new DefaultFieldDefinition("Shape", FieldType.Geometry, "GEOMETRY"));
-      
-      GPGGAFields.add(new DefaultFieldDefinition("GPSQuality", FieldType.Short));
-      GPGGAFields.add(new DefaultFieldDefinition("Satellites", FieldType.Short));
-      GPGGAFields.add(new DefaultFieldDefinition("HDOP", FieldType.Double));
-      GPGGAFields.add(new DefaultFieldDefinition("Altitude", FieldType.Double));
-      GPGGAFields.add(new DefaultFieldDefinition("AltitudeUnits", FieldType.String));
-      GPGGAFields.add(new DefaultFieldDefinition("Height", FieldType.Double));
-      GPGGAFields.add(new DefaultFieldDefinition("HeightUnits", FieldType.String));
-      GPGGAFields.add(new DefaultFieldDefinition("Update", FieldType.String));
-      GPGGAFields.add(new DefaultFieldDefinition("StationId", FieldType.String));
-      
-      GPGGA.setFieldDefinitions(GPGGAFields);
-      
-      geoEventDefinitions.put(GPGGA.getName(), GPGGA);
-      
-      // GPGLL
-      GeoEventDefinition GPGLL = new DefaultGeoEventDefinition();
-      GPGLL.setName("GPGLL");
-      GPGLL.setAccessType(AccessType.editable);
-
-      List<FieldDefinition> GPGLLFields = new ArrayList<FieldDefinition>();
-      
-      GPGLLFields.add(new DefaultFieldDefinition("DeviceId", FieldType.Long, "TRACK_ID"));
-      GPGLLFields.add(new DefaultFieldDefinition("TimeStamp", FieldType.Date, "TIME_START"));
-      GPGLLFields.add(new DefaultFieldDefinition("Shape", FieldType.Geometry, "GEOMETRY"));
-      
-      GPGLLFields.add(new DefaultFieldDefinition("Validity", FieldType.String));
-      
-      GPGLL.setFieldDefinitions(GPGLLFields);
-
-      geoEventDefinitions.put(GPGLL.getName(), GPGLL);
-
-      // GPRMC
-      GeoEventDefinition GPRMC = new DefaultGeoEventDefinition();
-      GPRMC.setName("GPRMC");
-      GPRMC.setAccessType(AccessType.editable);
-
-      List<FieldDefinition> GPRMCFields = new ArrayList<FieldDefinition>();
-      
-      GPRMCFields.add(new DefaultFieldDefinition("DeviceId", FieldType.Long, "TRACK_ID"));
-      GPRMCFields.add(new DefaultFieldDefinition("TimeStamp", FieldType.Date, "TIME_START"));
-      GPRMCFields.add(new DefaultFieldDefinition("Shape", FieldType.Geometry, "GEOMETRY"));
-      
-      GPRMCFields.add(new DefaultFieldDefinition("Validity", FieldType.String));
-      GPRMCFields.add(new DefaultFieldDefinition("Speed", FieldType.Double));
-      GPRMCFields.add(new DefaultFieldDefinition("Course", FieldType.Double));
-      GPRMCFields.add(new DefaultFieldDefinition("Variation", FieldType.Double));
-      GPRMCFields.add(new DefaultFieldDefinition("EastWest", FieldType.String));
-      GPRMCFields.add(new DefaultFieldDefinition("Mode", FieldType.String));
-      
-      GPRMC.setFieldDefinitions(GPRMCFields);
-
-      geoEventDefinitions.put(GPRMC.getName(), GPRMC);
+      for (NMEAMessageTranslator translator: translators.values()) {
+        GeoEventDefinition definition = translator.getGeoEventDefinition();
+        geoEventDefinitions.put(definition.getName(), definition);
+      }
     } catch (ConfigurationException ex) {
       throw new PropertyException(String.format("Error creating geoevent definition. %s", ex.getMessage()));
     }

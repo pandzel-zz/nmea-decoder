@@ -40,7 +40,7 @@ public class NMEADecoderService extends GeoEventProcessorServiceBase {
   private final Map<String,NMEAMessageTranslator> translators;
 
   public NMEADecoderService(Messaging messaging, GeoEventDefinitionManager geoDefinitionManager, Map<String,NMEAMessageTranslator> translators) throws PropertyException {
-    this.definition = new NMEADecoderDefinition();
+    this.definition = new NMEADecoderDefinition(translators);
     this.geoEventCreator = messaging.createGeoEventCreator();
     this.geoDefinitionManager = geoDefinitionManager;
     this.translators = translators;
